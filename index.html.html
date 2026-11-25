@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pocket Ledger – Student Expense Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e9eef5;--card:#fff;--ink:#14213d;--mute:#5b6784;--line:#d5dce8;--acc:#0f8b8d;--accfg:#fff;--bad:#c8402a;--soft:#dff1f1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101828;--card:#182236;--ink:#e8edf7;--mute:#9aa6c0;--line:#2a3750;--acc:#3cc4c6;--accfg:#06282a;--bad:#ff8a73;--soft:#16373b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101828;--card:#182236;--ink:#e8edf7;--mute:#9aa6c0;--line:#2a3750;--acc:#3cc4c6;--accfg:#06282a;--bad:#ff8a73;--soft:#16373b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "DM Sans",system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,.big{font-family:"Bricolage Grotesque","DM Sans",system-ui,sans-serif;margin:0}
+h2{font-size:1.1rem;font-weight:600;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.top h1{font-size:1.2rem;font-weight:800}
+.hero{background:var(--ink);color:var(--bg);border-radius:20px;padding:24px;display:grid;gap:16px}
+@media(min-width:700px){.hero{grid-template-columns:1.2fr 1fr;align-items:end}}
+.hero .lbl{color:var(--bg);opacity:.75;font-size:.95rem}
+.big{font-size:clamp(2.6rem,9vw,4.4rem);font-weight:800;line-height:1}
+.big.over{color:#ff9d8a}
+.meter{height:10px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden;margin:10px 0 6px}
+.meter i{display:block;height:100%;background:#5fd6d8;border-radius:99px;transition:width .4s}
+.meter i.over{background:#ff9d8a}
+.grid{display:grid;gap:16px;margin-top:16px}
+@media(min-width:800px){.grid{grid-template-columns:340px 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-size:.85rem;color:var(--mute);margin:10px 0 4px}
+input,select,button{font:inherit;color:inherit}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.btn{background:var(--acc);color:var(--accfg);border:0;padding:12px 16px;border-radius:10px;font-weight:700;cursor:pointer;width:100%;margin-top:16px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);width:auto;margin:0;padding:7px 12px;font-weight:500;font-size:.9rem}
+.days{display:flex;align-items:flex-end;gap:8px;height:120px}
+.days div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:.75rem;color:var(--mute)}
+.days b{display:block;width:100%;background:var(--soft);border-radius:6px 6px 2px 2px;min-height:3px}
+.days .t b{background:var(--acc)}
+.cat{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:.92rem}
+.cat .n{width:120px;flex:none}.cat .bar{flex:1;height:8px;background:var(--soft);border-radius:9px;overflow:hidden}
+.cat .bar i{display:block;height:100%;background:var(--acc)}.cat .v{width:70px;text-align:right;flex:none}
+ul{list-style:none;margin:0;padding:0}
+li{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+li:first-child{border-top:0}
+li small{color:var(--mute);display:block}
+li .amt{font-weight:700;white-space:nowrap}
+li button{background:none;border:0;color:var(--mute);cursor:pointer;padding:6px 8px;border-radius:8px}
+li button:hover{color:var(--bad)}
+.empty{color:var(--mute);padding:8px 0}
+.stack{display:grid;gap:16px}
+.over-t{color:var(--bad)}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>Pocket Ledger</h1>
+    <div class="row" style="flex:none;gap:8px">
+      <button class="btn ghost" id="csv">Export CSV</button>
+      <button class="btn ghost" id="theme">Theme</button>
+    </div>
+  </div>
+
+  <section class="hero" aria-live="polite">
+    <div>
+      <div class="lbl" id="herolbl">Left to spend today</div>
+      <div class="big" id="today">₹0</div>
+      <div class="lbl" id="herosub" style="margin-top:8px"></div>
+    </div>
+    <div>
+      <div class="lbl" style="display:flex;justify-content:space-between"><span>This month</span><span id="mtxt"></span></div>
+      <div class="meter"><i id="mbar" style="width:0"></i></div>
+      <div class="lbl" id="mrem"></div>
+      <label style="color:var(--bg);opacity:.75" for="budget">Monthly budget (₹)</label>
+      <input id="budget" type="number" min="0" step="100" inputmode="numeric" style="background:rgba(255,255,255,.12);color:var(--bg);border-color:rgba(255,255,255,.25)">
+    </div>
+  </section>
+
+  <div class="grid">
+    <div class="card" style="align-self:start">
+      <h2>Add an expense</h2>
+      <label for="amt">Amount (₹)</label>
+      <input id="amt" type="number" min="1" step="any" inputmode="decimal" placeholder="e.g. 80">
+      <div class="row">
+        <div><label for="cat">Category</label><select id="cat"></select></div>
+        <div><label for="date">Date</label><input id="date" type="date"></div>
+      </div>
+      <label for="note">Note (optional)</label>
+      <input id="note" type="text" maxlength="60" placeholder="Canteen lunch">
+      <button class="btn" id="add">Add expense</button>
+      <div id="err" class="over-t" style="margin-top:8px;font-size:.9rem" role="alert"></div>
+    </div>
+
+    <div class="stack">
+      <div class="card"><h2>Last 7 days</h2><div class="days" id="days"></div></div>
+      <div class="card"><h2>Where this month’s money went</h2><div id="cats"></div></div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+          <h2 style="margin:0">Recent expenses</h2>
+          <select id="filter" style="width:auto" aria-label="Filter by category"></select>
+        </div>
+        <ul id="list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+var CATS=["Food","Travel","Books & printouts","Rent & bills","Recharge","Fun","Other"];
+var KEY="pocket-ledger-v1";
+var S={budget:6000,items:[]};
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&Array.isArray(p.items)){S.items=p.items;S.budget=+p.budget||0}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+"-"+(m<10?"0":"")+m+"-"+(x<10?"0":"")+x}
+function inr(n){return "₹"+Math.round(n).toLocaleString("en-IN")}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var now=new Date(),todayIso=iso(now),monthKey=todayIso.slice(0,7);
+
+CATS.forEach(function(c){$("cat").add(new Option(c,c))});
+$("filter").add(new Option("All categories","all"));CATS.forEach(function(c){$("filter").add(new Option(c,c))});
+$("date").value=todayIso;$("budget").value=S.budget;
+
+function render(){
+  var month=S.items.filter(function(x){return x.date.slice(0,7)===monthKey});
+  var spent=month.reduce(function(a,x){return a+x.amt},0);
+  var todaySpent=month.filter(function(x){return x.date===todayIso}).reduce(function(a,x){return a+x.amt},0);
+  var dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  var daysLeft=dim-now.getDate()+1;
+  var before=spent-todaySpent;
+  var allowance=Math.max(0,(S.budget-before)/daysLeft);
+  var left=allowance-todaySpent;
+  var big=$("today");
+  if(S.budget<=0){big.textContent="Set a budget";big.className="big";$("herosub").textContent="Enter a monthly budget to see your daily allowance."}
+  else{
+    big.textContent=(left<0?"−":"")+inr(Math.abs(left));
+    big.className="big"+(left<0?" over":"");
+    $("herolbl").textContent=left<0?"Over today’s allowance by":"Left to spend today";
+    $("herosub").textContent="Daily allowance "+inr(allowance)+" · spent today "+inr(todaySpent);
+  }
+  var pct=S.budget>0?Math.min(100,spent/S.budget*100):0;
+  $("mbar").style.width=pct+"%";$("mbar").className=spent>S.budget&&S.budget>0?"over":"";
+  $("mtxt").textContent=inr(spent)+" of "+inr(S.budget);
+  $("mrem").textContent=S.budget>0?(spent>S.budget?inr(spent-S.budget)+" over budget":inr(S.budget-spent)+" remaining, "+daysLeft+" day"+(daysLeft>1?"s":"")+" to go"):"";
+
+  var dd="";var max=1,vals=[];
+  for(var i=6;i>=0;i--){var d=new Date(now);d.setDate(now.getDate()-i);var k=iso(d);
+    var v=S.items.filter(function(x){return x.date===k}).reduce(function(a,x){return a+x.amt},0);
+    vals.push({k:k,v:v,l:d.toLocaleDateString("en-IN",{weekday:"short"})});if(v>max)max=v}
+  vals.forEach(function(o){dd+='<div class="'+(o.k===todayIso?"t":"")+'" title="'+inr(o.v)+'"><span>'+(o.v?Math.round(o.v):"")+'</span><b style="height:'+Math.max(3,o.v/max*80)+'%"></b><span>'+o.l+'</span></div>'});
+  $("days").innerHTML=dd;
+
+  var tot={};month.forEach(function(x){tot[x.cat]=(tot[x.cat]||0)+x.amt});
+  var rows=Object.keys(tot).sort(function(a,b){return tot[b]-tot[a]});
+  $("cats").innerHTML=rows.length?rows.map(function(c){return '<div class="cat"><span class="n">'+esc(c)+'</span><span class="bar"><i style="width:'+(tot[c]/spent*100)+'%"></i></span><span class="v">'+inr(tot[c])+'</span></div>'}).join(""):'<div class="empty">Nothing logged this month. Add your first expense.</div>';
+
+  var f=$("filter").value;
+  var list=S.items.filter(function(x){return f==="all"||x.cat===f}).sort(function(a,b){return b.date.localeCompare(a.date)||b.id-a.id}).slice(0,30);
+  $("list").innerHTML=list.length?list.map(function(x){return '<li><div>'+esc(x.note||x.cat)+'<small>'+esc(x.cat)+' · '+new Date(x.date+"T00:00").toLocaleDateString("en-IN",{day:"numeric",month:"short"})+'</small></div><div style="display:flex;align-items:center;gap:4px"><span class="amt">'+inr(x.amt)+'</span><button data-id="'+x.id+'" aria-label="Delete expense">Delete</button></div></li>'}).join(""):'<div class="empty">No expenses to show.</div>';
+}
+
+$("add").onclick=function(){
+  var a=parseFloat($("amt").value);
+  if(!(a>0)){$("err").textContent="Enter an amount greater than 0.";$("amt").focus();return}
+  if(!$("date").value){$("err").textContent="Pick a date.";return}
+  $("err").textContent="";
+  S.items.push({id:Date.now(),amt:a,cat:$("cat").value,note:$("note").value.trim(),date:$("date").value});
+  save();$("amt").value="";$("note").value="";$("amt").focus();render();
+};
+$("list").onclick=function(e){var b=e.target.closest("button");if(!b)return;var id=+b.getAttribute("data-id");S.items=S.items.filter(function(x){return x.id!==id});save();render()};
+$("budget").oninput=function(){S.budget=Math.max(0,parseFloat(this.value)||0);save();render()};
+$("filter").onchange=render;
+$("amt").addEventListener("keydown",function(e){if(e.key==="Enter")$("add").click()});
+$("theme").onclick=function(){var r=document.documentElement;var dark=r.getAttribute("data-theme")==="dark"||(!r.getAttribute("data-theme")&&matchMedia("(prefers-color-scheme:dark)").matches);r.setAttribute("data-theme",dark?"light":"dark")};
+$("csv").onclick=function(){
+  var csv="Date,Category,Note,Amount\n"+S.items.map(function(x){return [x.date,'"'+x.cat+'"','"'+(x.note||"").replace(/"/g,'""')+'"',x.amt].join(",")}).join("\n");
+  try{var a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(csv);a.download="expenses.csv";a.click()}catch(e){}
+};
+render();
+})();
+</script>
+</body>
+</html>
